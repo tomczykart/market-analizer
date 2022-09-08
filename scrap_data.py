@@ -18,7 +18,7 @@ def get_site_html(url):
 
     #navigate to webpage
     driver.get(url)
-
+    
     #get page html code
     soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -45,15 +45,12 @@ def offers_list(soup):
 
     return offers_links
 
-def check_offer(soup):
+def get_offer(soup):
 
     #filter data - construction status
     construction_status = soup.find('div', {'aria-label':'Stan wykończenia'})
     construction_status = construction_status.find('div', {'class':'css-1wi2w6s estckra5'})
-    print(construction_status.text)
-    return construction_status.text
-
-def get_offer(soup):
+    construction_status = construction_status.text
 
     #filter data - area
     area = soup.find('div', {'aria-label':'Powierzchnia'})
@@ -72,7 +69,7 @@ def get_offer(soup):
 
     #filter data - parking
     parking = soup.find('div', {'aria-label':'Miejsce parkingowe'})
-    parking = parking.find('div', {'class':'css-1wi2w6s estckra5'})
+    parking = parking.find('div', {'class':'css-1h52dri estckra7'})
     parking = parking.text
 
     #filter data - price
@@ -84,7 +81,7 @@ def get_offer(soup):
     price_per_meter = price_per_meter.text
 
     #create dictionary for an offer
-    offer = {'Area':area, 'Plot area':plot_area, 'Construction year':construct_year, 'Parking':parking, 'Price':price, 'Price per meter':price_per_meter}
+    offer = {'Area':area, 'Plot area':plot_area, 'Construction year':construct_year, 'Parking':parking, 'Price':price, 'Price per meter':price_per_meter, 'Construction status':construction_status}
 
     return offer
 
@@ -92,8 +89,9 @@ def get_offer(soup):
 #website url with predefined search arguments
 url = 'https://www.otodom.pl/pl/oferty/sprzedaz/dom/jozefow?distanceRadius=0&page=1&limit=288&market=ALL&locations=%5Bcities_6-800%5D&buildingType=%5BDETACHED%5D&viewType=listing'
 
-soup = get_site_html(url)
-offers = offers_list(soup)
-offer_to_check = get_site_html(offers[13])
-offers_verification = check_offer(offer_to_check)
-offer_parameters = get_offer(offer_to_check)
+#soup = get_site_html(url)
+#offers = offers_list(soup)
+#offer_to_check = get_site_html(offers[13])
+#offers_verification = check_offer(offer_to_check)
+#offer_parameters = get_offer(offer_to_check)
+#print(offer_parameters)
