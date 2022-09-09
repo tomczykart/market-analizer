@@ -13,13 +13,14 @@ class BazaOfert:
 
     def __init__(self):
         self.offers_database = pd.DataFrame(data=None, columns=BazaOfert.database_structure)
-        #BazaOfert.new_offers = pd.DataFrame(self.scrap_offers())
-        #BazaOfert.new_offers.columns = ['link']
-        #BazaOfert.new_offers.set_index('link')
-        #BazaOfert.offers_database = pd.read_excel('offers.xlsx')
-        #BazaOfert.offers_database.set_index('link')
-        #BazaOfert.offers_database_archive = pd.read_excel('offers_archive.xlsx')
-        #BazaOfert.offers_database_archive.set_index('link')
+        self.update_database()
+
+    def update_database(self):
+        print('loading data to database...\n')
+        self.append_data_to_database()
+        print('downloading new offers...\n')
+        self.merge_new_offers_to_database()
+        self.save_dataframe_to_excel(self.offers_database)
 
     def read_excel_to_dataframe(self, filename):
         try:
@@ -30,10 +31,14 @@ class BazaOfert:
             data = pd.DataFrame(data=None)
             return data
 
-
     def append_data_to_database(self):
         data = self.read_excel_to_dataframe(BazaOfert.database_filename)
         self.offers_database = pd.concat([self.offers_database,data], ignore_index=True)
+
+    def merge_new_offers_to_database(self):
+        offers = self.scrap_offers()
+        filtered_offers = self.find_new_offers(offers)
+        self.offers_database = pd.merge(self.offers_database,filtered_offers, on='link', how='outer')
 
     def save_dataframe_to_excel(self, data):
         data.to_excel(BazaOfert.database_filename, sheet_name='Oferty domów')
@@ -45,37 +50,12 @@ class BazaOfert:
 
     def find_new_offers(self, offers):
         db = self.offers_database
-        new_offers = pd.Series(offers)
-        new_offers = new_offers[new_offers.isin(db.link) == False]
-        return new_offers
+        filtered_offers = pd.Series(offers, name='link')
+        filtered_offers = filtered_offers[filtered_offers.isin(db.link) == False]
+        print(f'New offers:\n{filtered_offers}')
+        return filtered_offers
 
-    def update_database(self):
-        self.append_data_to_database()
-        self.save_dataframe_to_excel(self.offers_database)
-
-
-
-
-
-    def check_if_in_archive(self):
-        BazaOfert.new_offers = BazaOfert.new_offers.assign(already_exists = BazaOfert.new_offers.index.isin(BazaOfert.offers_database_archive.index))
-        BazaOfert.new_offers = BazaOfert.new_offers.loc[BazaOfert.new_offers['already_exists']==False]
-
-    def check_if_in_database(self):
-        BazaOfert.new_offers = BazaOfert.new_offers.assign(already_exists = BazaOfert.new_offers.index.isin(BazaOfert.offers_database.index))
-        self.new_unregistered_offers = BazaOfert.new_offers.loc[BazaOfert.new_offers['already_exists']==False]
-        print(f'Nowe oferty:{self.new_unregistered_offers}')
-
-    def add_new_offers(self):
-        BazaOfert.offers_database = BazaOfert.offers_database.merge(self.new_unregistered_offers, on='link', how='outer')
-
-    def archive_old_offers(self):
-        BazaOfert.offers_database = BazaOfert.offers_database.assign(expired = ~BazaOfert.offers_database.index.isin(BazaOfert.new_offers))
-        self.expired_offers = BazaOfert.offers_database.loc[BazaOfert.offers_database['expired']==False]
-        print(f'Baza ofert z archiwalnymi = {BazaOfert.offers_database}')
-        print(f'oferty przedawnione = {self.expired_offers}')
-
-
+#wszystkie_oferty.loc[index np. 1, nazwa kolumny np. 'name'] = wartość 'domek'
 
 
 class Oferta(BazaOfert):
@@ -89,12 +69,3 @@ class Oferta(BazaOfert):
 
 if __name__ == "__main__":
     Database = BazaOfert()
-
-
-
-
-#Database.check_if_in_archive()
-#Database.check_if_in_database()
-#Database.add_new_offers()
-#Database.archive_old_offers()
-#Database.save_excel()
