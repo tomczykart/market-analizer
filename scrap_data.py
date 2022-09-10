@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from msedge.selenium_tools import EdgeOptions
 from bs4 import BeautifulSoup
+import numpy as np
 
 #setup headless driver
 options = EdgeOptions()
@@ -18,7 +19,7 @@ def get_site_html(url):
 
     #navigate to webpage
     driver.get(url)
-    
+
     #get page html code
     soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -47,30 +48,46 @@ def offers_list(soup):
 
 def get_offer(soup):
 
+
     #filter data - construction status
     construction_status = soup.find('div', {'aria-label':'Stan wykończenia'})
     construction_status = construction_status.find('div', {'class':'css-1wi2w6s estckra5'})
-    construction_status = construction_status.text
+    if construction_status is None:
+        construction_status = np.nan
+    else:
+        construction_status = construction_status.text
 
     #filter data - area
-    area = soup.find('div', {'aria-label':'Powierzchnia'})
-    area = area.find('div', {'class':'css-1wi2w6s estckra5'})
-    area = area.text
+    home_area = soup.find('div', {'aria-label':'Powierzchnia'})
+    home_area = home_area.find('div', {'class':'css-1wi2w6s estckra5'})
+    if home_area is None:
+        home_area = np.nan
+    else:
+        home_area = home_area.text
 
     #filter data - plot area
     plot_area = soup.find('div', {'aria-label':'Powierzchnia działki'})
     plot_area = plot_area.find('div', {'class':'css-1wi2w6s estckra5'})
-    plot_area = plot_area.text
+    if plot_area is None:
+        plot_area = np.nan
+    else:
+        plot_area = plot_area.text
 
     #filter data - year of construction
     construct_year = soup.find('div', {'aria-label':'Rok budowy'})
     construct_year = construct_year.find('div', {'class':'css-1wi2w6s estckra5'})
-    construct_year = construct_year.text
+    if construct_year is None:
+        construct_year = np.nan
+    else:
+        construct_year = construct_year.text
 
     #filter data - parking
     parking = soup.find('div', {'aria-label':'Miejsce parkingowe'})
     parking = parking.find('div', {'class':'css-1h52dri estckra7'})
-    parking = parking.text
+    if parking is None:
+        parking = np.nan
+    else:
+        parking = parking.text
 
     #filter data - price
     price = soup.find('strong', {'aria-label':'Cena'})
@@ -81,13 +98,13 @@ def get_offer(soup):
     price_per_meter = price_per_meter.text
 
     #create dictionary for an offer
-    offer = {'Area':area, 'Plot area':plot_area, 'Construction year':construct_year, 'Parking':parking, 'Price':price, 'Price per meter':price_per_meter, 'Construction status':construction_status}
+    offer = {'home_area':home_area, 'plot_area':plot_area, 'construct_year':construct_year, 'parking':parking, 'price':price, 'price_per_meter':price_per_meter, 'construction_status':construction_status}
 
     return offer
 
 
 #website url with predefined search arguments
-url = 'https://www.otodom.pl/pl/oferty/sprzedaz/dom/jozefow?distanceRadius=0&page=1&limit=288&market=ALL&locations=%5Bcities_6-800%5D&buildingType=%5BDETACHED%5D&viewType=listing'
+#url = 'https://www.otodom.pl/pl/oferty/sprzedaz/dom/jozefow?distanceRadius=0&page=1&limit=288&market=ALL&locations=%5Bcities_6-800%5D&buildingType=%5BDETACHED%5D&viewType=listing'
 
 #soup = get_site_html(url)
 #offers = offers_list(soup)

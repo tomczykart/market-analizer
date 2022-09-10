@@ -20,6 +20,9 @@ class BazaOfert:
         self.append_data_to_database()
         print('downloading new offers...\n')
         self.merge_new_offers_to_database()
+        print('checking new offers...\n')
+        self.get_new_offers_details()
+        print('saving database...\n')
         self.save_dataframe_to_excel(self.offers_database)
 
     def read_excel_to_dataframe(self, filename):
@@ -37,8 +40,17 @@ class BazaOfert:
 
     def merge_new_offers_to_database(self):
         offers = self.scrap_offers()
-        filtered_offers = self.find_new_offers(offers)
-        self.offers_database = pd.merge(self.offers_database,filtered_offers, on='link', how='outer')
+        self.filtered_offers = self.find_new_offers(offers)
+        self.offers_database = pd.merge(self.offers_database,self.filtered_offers, on='link', how='outer')
+
+    def get_new_offers_details(self):
+        for index in range(len(self.filtered_offers)):
+            print(f'checking offer nr {index}...')
+            link = self.filtered_offers.iloc[index,0]
+            new_offer = Oferta(link)
+            new_offer.get_offer_parameters()
+            new_offer.add_parameters_to_offer(self.offers_database)
+
 
     def save_dataframe_to_excel(self, data):
         data.to_excel(BazaOfert.database_filename, sheet_name='Oferty domów')
@@ -52,20 +64,37 @@ class BazaOfert:
         db = self.offers_database
         filtered_offers = pd.Series(offers, name='link')
         filtered_offers = filtered_offers[filtered_offers.isin(db.link) == False]
-        print(f'New offers:\n{filtered_offers}')
+        print(f'New offers: {len(filtered_offers)}\n')
         return filtered_offers
-
-#wszystkie_oferty.loc[index np. 1, nazwa kolumny np. 'name'] = wartość 'domek'
 
 
 class Oferta(BazaOfert):
 
-    def __init__(self, link, name, price, home_area, plot_area):
+    def __init__(self,link):
         self.link = link
-        self.name = name
-        self.price = price
-        self.home_area = home_area
-        self.plot_area = plot_area
+        self.name = self.link[33:-8]
+
+    def get_offer_parameters(self):
+        soup = get_site_html(self.link)
+        offer_parameters = get_offer(soup)
+        self.price = offer_parameters['price']
+        self.price_per_meter = offer_parameters['price_per_meter']
+        self.home_area = offer_parameters['home_area']
+        self.plot_area = offer_parameters['plot_area']
+        self.parking = offer_parameters['parking']
+        self.construct_year = offer_parameters['construct_year']
+        self.construction_status = offer_parameters['construction_status']
+
+    def add_parameters_to_offer(self, db):
+        db.loc[db['link'] == self.link] = [self.link, self.name, self.price, self.price_per_meter, self.home_area, self.plot_area, self.parking, self.construct_year, self.construction_status]
+
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     Database = BazaOfert()
