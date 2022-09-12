@@ -46,11 +46,11 @@ class BazaOfert:
     def get_new_offers_details(self):
         for index in range(len(self.filtered_offers)):
             print(f'checking offer nr {index}...')
-            link = self.filtered_offers.iloc[index,0]
+            #link = self.filtered_offers.iloc[index,0]
+            link = self.filtered_offers.iloc[index]
             new_offer = Oferta(link)
             new_offer.get_offer_parameters()
             new_offer.add_parameters_to_offer(self.offers_database)
-
 
     def save_dataframe_to_excel(self, data):
         data.to_excel(BazaOfert.database_filename, sheet_name='Oferty domów')
@@ -65,6 +65,8 @@ class BazaOfert:
         filtered_offers = pd.Series(offers, name='link')
         filtered_offers = filtered_offers[filtered_offers.isin(db.link) == False]
         print(f'New offers: {len(filtered_offers)}\n')
+        if len(filtered_offers) > 0:
+            print(filtered_offers)
         return filtered_offers
 
 
@@ -87,13 +89,6 @@ class Oferta(BazaOfert):
 
     def add_parameters_to_offer(self, db):
         db.loc[db['link'] == self.link] = [self.link, self.name, self.price, self.price_per_meter, self.home_area, self.plot_area, self.parking, self.construct_year, self.construction_status]
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
