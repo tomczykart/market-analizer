@@ -83,7 +83,7 @@ def get_offer(soup):
 
     #filter data - parking
     parking = soup.find('div', {'aria-label':'Miejsce parkingowe'})
-    parking = parking.find('div', {'class':'css-1h52dri estckra7'})
+    parking = parking.find('div', {'class':'css-1wi2w6s estckra5'})
     if parking is None:
         parking = np.nan
     else:
